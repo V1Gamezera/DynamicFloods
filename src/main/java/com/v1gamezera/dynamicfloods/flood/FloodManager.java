@@ -1,5 +1,8 @@
 package com.v1gamezera.dynamicfloods.flood;
 
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+
 public class FloodManager {
 
     private static int floodLevel = 0;
