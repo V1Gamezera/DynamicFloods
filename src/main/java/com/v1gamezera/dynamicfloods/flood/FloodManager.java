@@ -9,11 +9,29 @@ public class FloodManager {
     public static int getFloodLevel() {
         return floodLevel;
     }
+    public static String getFloodStage() {
+
+        if (floodLevel <= 0) {
+            return "Sem enchente";
+        }
+
+        if (floodLevel <= 3) {
+            return "Pequena enchente";
+        }
+
+        if (floodLevel <= 7) {
+            return "Enchente moderada";
+        }
+
+        return "Grande enchente";
+    }
 
     public static void increaseFlood(long gameTime) {
         floodLevel++;
 
-        System.out.println("🌊 Nível da enchente agora é: " + floodLevel + " (tick: " + gameTime + ")");
+        System.out.println("🌊 Nível da enchente: " + floodLevel
+                + " | Estágio: " + getFloodStage()
+                + " (tick: " + gameTime + ")");
     }
 
     public static void resetFlood() {
