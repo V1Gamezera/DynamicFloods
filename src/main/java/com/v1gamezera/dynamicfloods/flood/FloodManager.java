@@ -4,6 +4,7 @@ public class FloodManager {
 
     private static int floodLevel = 0;
     private static long lastFloodTime = -1;
+    private static final int FLOOD_INTERVAL = 200;
 
     public static int getFloodLevel() {
         return floodLevel;
@@ -28,7 +29,7 @@ public class FloodManager {
             return;
         }
 
-        if (gameTime - lastFloodTime >= 200) {
+        if (gameTime - lastFloodTime >= FLOOD_INTERVAL) {
             increaseFlood(gameTime);
             lastFloodTime = gameTime;
         }
