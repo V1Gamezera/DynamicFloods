@@ -12,7 +12,10 @@ public class FloodEvents {
     @SubscribeEvent
     public static void onWorldTick(TickEvent.LevelTickEvent event) {
 
-        if (event.phase == TickEvent.Phase.END && event.level.dimension() == Level.OVERWORLD && !event.level.isClientSide()) {
+        if (event.phase == TickEvent.Phase.END
+                && event.level.dimension() == Level.OVERWORLD
+                && !event.level.isClientSide()
+                && event.level.isRaining()) {
 
             FloodManager.tickFlood(event.level.getGameTime());
 
