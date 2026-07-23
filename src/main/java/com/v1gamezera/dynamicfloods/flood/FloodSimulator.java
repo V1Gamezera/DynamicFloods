@@ -22,8 +22,12 @@ public class FloodSimulator {
 
         BlockPos playerPos = player.blockPosition();
 
-        for (int x = -3; x <= 3; x++) {
-            for (int z = -3; z <= 3; z++) {
+        int floodLevel = FloodManager.getFloodLevel();
+
+        int radius = 3 + floodLevel;
+
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
 
                 BlockPos waterPos = playerPos.offset(x, -1, z);
 
@@ -34,7 +38,10 @@ public class FloodSimulator {
             }
         }
 
-        System.out.println("🌊 Simulando enchente perto de: " + playerPos);
+        System.out.println("🌊 Simulando enchente nível "
+                + floodLevel
+                + " perto de: "
+                + playerPos);
 
     }
 }
