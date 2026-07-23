@@ -21,9 +21,16 @@ public class FloodEvents {
             FloodManager.tickFlood(event.level.getGameTime());
 
             if (!event.level.players().isEmpty()) {
+
+                var player = event.level.players().get(0);
+
+                if (FloodManager.getFloodOrigin() == null) {
+                    FloodManager.setFloodOrigin(player.blockPosition());
+                }
+
                 FloodSimulator.simulateFlood(
                         event.level,
-                        event.level.players().get(0)
+                        player
                 );
             }
 

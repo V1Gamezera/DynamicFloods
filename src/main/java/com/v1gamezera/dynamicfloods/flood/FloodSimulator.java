@@ -20,7 +20,11 @@ public class FloodSimulator {
 
         lastSimulation = gameTime;
 
-        BlockPos playerPos = player.blockPosition();
+        BlockPos playerPos = FloodManager.getFloodOrigin();
+
+        if (playerPos == null) {
+            return;
+        }
 
         int floodLevel = FloodManager.getFloodLevel();
 

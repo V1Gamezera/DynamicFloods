@@ -1,13 +1,13 @@
 package com.v1gamezera.dynamicfloods.flood;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
+import net.minecraft.core.BlockPos;
 
 public class FloodManager {
 
     private static int floodLevel = 0;
+    private static BlockPos floodOrigin;
     private static long lastFloodTime = -1;
-    private static final int FLOOD_INTERVAL = 200;
+    private static final int FLOOD_INTERVAL = 1200;
 
     public static int getFloodLevel() {
         return floodLevel;
@@ -27,6 +27,15 @@ public class FloodManager {
         }
 
         return "Grande enchente";
+    }
+    public static void setFloodOrigin(BlockPos pos) {
+        floodOrigin = pos;
+
+        System.out.println("🌊 Origem da enchente definida em: " + pos);
+    }
+
+    public static BlockPos getFloodOrigin() {
+        return floodOrigin;
     }
 
     public static void increaseFlood(long gameTime) {
