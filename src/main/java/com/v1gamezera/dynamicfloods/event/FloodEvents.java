@@ -6,6 +6,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraft.world.level.Level;
 import com.v1gamezera.dynamicfloods.flood.FloodSimulator;
+import net.minecraft.core.BlockPos;
 
 @Mod.EventBusSubscriber
 public class FloodEvents {
@@ -25,15 +26,20 @@ public class FloodEvents {
                 var player = event.level.players().get(0);
 
                 if (FloodManager.getFloodOrigin() == null) {
-                    FloodManager.setFloodOrigin(player.blockPosition());
+                    BlockPos groundPos = FloodSimulator.findGround(
+                            event.level,
+                            player.blockPosition()
+                    );
+
+                    FloodManager.setFloodOrigin(groundPos);
+
+                    FloodSimulator.simulateFlood(
+                            event.level,
+                            player
+                    );
                 }
 
-                FloodSimulator.simulateFlood(
-                        event.level,
-                        player
-                );
             }
-
         }
     }
 }

@@ -10,7 +10,24 @@ public class FloodSimulator {
     private static long lastSimulation = 0;
     private static final int SIMULATION_INTERVAL = 20;
 
+    public static BlockPos findGround(Level level, BlockPos pos) {
+
+        BlockPos current = pos;
+
+        while (current.getY() > level.getMinBuildHeight()) {
+
+            if (!level.getBlockState(current.below()).isAir()) {
+                return current;
+            }
+
+            current = current.below();
+        }
+
+        return pos;
+    }
+
     public static void simulateFlood(Level level, Player player) {
+
 
         long gameTime = level.getGameTime();
 
@@ -28,11 +45,19 @@ public class FloodSimulator {
 
         int floodLevel = FloodManager.getFloodLevel();
 
-        int radius = 3 + floodLevel;
+        if (floodLevel <= 0) {
+            return;
+        }
+
+        int radius = 1 + floodLevel;
         int height = floodLevel / 3;
 
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
+
+                if ((x * x) + (z * z) > (radius * radius)) {
+                    continue;
+                }
 
                 for (int y = 0; y <= height; y++) {
 

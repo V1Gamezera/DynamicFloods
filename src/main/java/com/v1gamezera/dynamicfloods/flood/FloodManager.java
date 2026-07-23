@@ -1,13 +1,13 @@
 package com.v1gamezera.dynamicfloods.flood;
 
 import net.minecraft.core.BlockPos;
+import com.v1gamezera.dynamicfloods.config.DynamicFloodsConfig;
 
 public class FloodManager {
 
     private static int floodLevel = 0;
     private static BlockPos floodOrigin;
     private static long lastFloodTime = -1;
-    private static final int FLOOD_INTERVAL = 1200;
 
     public static int getFloodLevel() {
         return floodLevel;
@@ -59,7 +59,7 @@ public class FloodManager {
             return;
         }
 
-        if (gameTime - lastFloodTime >= FLOOD_INTERVAL) {
+        if (gameTime - lastFloodTime >= DynamicFloodsConfig.FLOOD_INTERVAL.get()) {
             increaseFlood(gameTime);
             lastFloodTime = gameTime;
         }
