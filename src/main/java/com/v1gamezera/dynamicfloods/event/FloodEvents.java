@@ -19,7 +19,7 @@ public class FloodEvents {
                 && !event.level.isClientSide()
                 && event.level.isRaining()) {
 
-            FloodManager.tickFlood(event.level.getGameTime());
+            FloodManager.tickFlood(event.level);
 
             if (!event.level.players().isEmpty()) {
 

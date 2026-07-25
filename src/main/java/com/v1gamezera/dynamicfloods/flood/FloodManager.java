@@ -2,6 +2,7 @@ package com.v1gamezera.dynamicfloods.flood;
 
 import net.minecraft.core.BlockPos;
 import com.v1gamezera.dynamicfloods.config.DynamicFloodsConfig;
+import net.minecraft.world.level.Level;
 
 public class FloodManager {
 
@@ -12,6 +13,7 @@ public class FloodManager {
     public static int getFloodLevel() {
         return floodLevel;
     }
+
     public static String getFloodStage() {
 
         if (floodLevel <= 0) {
@@ -28,6 +30,7 @@ public class FloodManager {
 
         return "Grande enchente";
     }
+
     public static void setFloodOrigin(BlockPos pos) {
         floodOrigin = pos;
 
@@ -55,16 +58,37 @@ public class FloodManager {
         System.out.println("🌊 Estado da enchente resetado!");
     }
 
-    public static void tickFlood(long gameTime) {
+    public static void tickFlood(Level level) {
 
-        if (lastFloodTime == -1) {
-            lastFloodTime = gameTime;
-            return;
+        System.out.println("🌧️ FloodManager rodando!");
+
+        long gameTime = level.getGameTime();
+
+        if (!level.players().isEmpty()) {
+
+            BlockPos playerPos = level.players().get(0).blockPosition();
+
+            BlockPos water = WaterSourceFinder.findWater(level, playerPos, 128);
+
+            if (water != null) {
+
+                System.out.println("🌊 Água encontrada em: " + water);
+
+                int waterSize = WaterAnalyzer.countWaterBlocks(level, water);
+
+                System.out.println("🌊 Tamanho do corpo d'água: " + waterSize + " blocos");
+
+                int calculatedLevel = FloodCalculator.calculateFloodLevel(waterSize);
+
+                System.out.println("🌊 Força calculada da enchente: nível " + calculatedLevel);
+
+            } else {
+
+                System.out.println("❌ Nenhuma água encontrada");
+
+            }
         }
 
-        if (gameTime - lastFloodTime >= DynamicFloodsConfig.FLOOD_INTERVAL.get()) {
-            increaseFlood(gameTime);
-            lastFloodTime = gameTime;
-        }
+        // resto do sistema de nível da enchente continua aqui
     }
 }
