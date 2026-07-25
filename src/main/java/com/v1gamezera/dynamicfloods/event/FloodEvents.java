@@ -26,12 +26,15 @@ public class FloodEvents {
                 var player = event.level.players().get(0);
 
                 if (FloodManager.getFloodOrigin() == null) {
-                    BlockPos groundPos = FloodSimulator.findGround(
+                    BlockPos waterSource = FloodSimulator.findNearestWater(
                             event.level,
-                            player.blockPosition()
+                            player.blockPosition(),
+                            128
                     );
 
-                    FloodManager.setFloodOrigin(groundPos);
+                    if (waterSource != null) {
+                        FloodManager.setFloodOrigin(waterSource);
+                    }
                 }
 
                 FloodSimulator.simulateFlood(
