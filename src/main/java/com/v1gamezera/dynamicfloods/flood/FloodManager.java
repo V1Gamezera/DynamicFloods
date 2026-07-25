@@ -47,9 +47,12 @@ public class FloodManager {
     }
 
     public static void resetFlood() {
-        floodLevel = 0;
 
-        System.out.println("🌊 Enchente resetada!");
+        floodLevel = 0;
+        floodOrigin = null;
+        lastFloodTime = -1;
+
+        System.out.println("🌊 Estado da enchente resetado!");
     }
 
     public static void tickFlood(long gameTime) {

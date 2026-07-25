@@ -1,12 +1,12 @@
 package com.v1gamezera.dynamicfloods.event;
 
 import com.v1gamezera.dynamicfloods.flood.FloodManager;
+import com.v1gamezera.dynamicfloods.flood.FloodSimulator;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraft.world.level.Level;
-import com.v1gamezera.dynamicfloods.flood.FloodSimulator;
-import net.minecraft.core.BlockPos;
 
 @Mod.EventBusSubscriber
 public class FloodEvents {
@@ -32,13 +32,12 @@ public class FloodEvents {
                     );
 
                     FloodManager.setFloodOrigin(groundPos);
-
-                    FloodSimulator.simulateFlood(
-                            event.level,
-                            player
-                    );
                 }
 
+                FloodSimulator.simulateFlood(
+                        event.level,
+                        player
+                );
             }
         }
     }

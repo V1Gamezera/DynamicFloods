@@ -37,9 +37,9 @@ public class FloodSimulator {
 
         lastSimulation = gameTime;
 
-        BlockPos playerPos = FloodManager.getFloodOrigin();
+        BlockPos floodOrigin = FloodManager.getFloodOrigin();
 
-        if (playerPos == null) {
+        if (floodOrigin == null) {
             return;
         }
 
@@ -61,7 +61,7 @@ public class FloodSimulator {
 
                 for (int y = 0; y <= height; y++) {
 
-                    BlockPos waterPos = playerPos.offset(x, -1 + y, z);
+                    BlockPos waterPos = floodOrigin.offset(x, -1 + y, z);
 
                     if (level.getBlockState(waterPos).isAir()) {
                         level.setBlock(waterPos, Blocks.WATER.defaultBlockState(), 3);
