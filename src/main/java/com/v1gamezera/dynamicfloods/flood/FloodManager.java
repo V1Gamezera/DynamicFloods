@@ -55,6 +55,8 @@ public class FloodManager {
         floodOrigin = null;
         lastFloodTime = -1;
 
+        WoodDamageManager.reset();
+
         System.out.println("🌊 Estado da enchente resetado!");
     }
 
@@ -82,13 +84,22 @@ public class FloodManager {
 
                 System.out.println("🌊 Força calculada da enchente: nível " + calculatedLevel);
 
+                setFloodOrigin(water);
+
             } else {
 
                 System.out.println("❌ Nenhuma água encontrada");
-
             }
         }
 
-        // resto do sistema de nível da enchente continua aqui
+        // Sistema de detecção e deterioração da madeira
+        if (floodOrigin != null) {
+
+            WoodDamageManager.tick(
+                    level,
+                    floodOrigin,
+                    15
+            );
+        }
     }
 }
