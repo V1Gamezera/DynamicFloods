@@ -2,7 +2,9 @@ package com.v1gamezera.dynamicfloods.flood;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,10 +14,17 @@ public class WoodDamageManager {
     // Guarda quando cada bloco de madeira começou a ficar molhado
     private static final Map<BlockPos, Long> wetWood = new HashMap<>();
 
+    // Guarda quando cada bloco começou a secar
+    private static final Map<BlockPos, Long> dryingWood = new HashMap<>();
+
     // Tempo para cada estágio
     private static final long WET_TIME = 20 * 10;          // 10 segundos
     private static final long WATERLOGGED_TIME = 20 * 30;  // 30 segundos
     private static final long BREAK_TIME = 20 * 60;        // 60 segundos
+
+    // Tempo que a madeira precisa ficar sem água para secar
+    private static final long DRY_TIME = 20 * 10;          // 10 segundos
+
 
     public static void tick(Level level, BlockPos origin, int radius) {
 
@@ -24,8 +33,6 @@ public class WoodDamageManager {
         }
 
         long gameTime = level.getGameTime();
-
-        System.out.println("🪵 WoodDamageManager está rodando! Origem: " + origin);
 
         // Procura madeira ao redor da enchente
         for (int x = -radius; x <= radius; x++) {
@@ -39,10 +46,14 @@ public class WoodDamageManager {
                         continue;
                     }
 
-                    // Verifica se existe água encostando na madeira
-                    if (isTouchingWater(level, pos)) {
+                    BlockPos immutablePos = pos.immutable();
 
-                        BlockPos immutablePos = pos.immutable();
+                    // Verifica se existe água encostando na madeira
+                    if (isTouchingWater(level, immutablePos)) {
+
+                        // A madeira está molhada novamente.
+                        // Se ela estava secando, cancela a secagem.
+                        dryingWood.remove(immutablePos);
 
                         // Se acabou de ficar molhada
                         if (!wetWood.containsKey(immutablePos)) {
@@ -82,12 +93,59 @@ public class WoodDamageManager {
                             level.destroyBlock(immutablePos, true);
 
                             wetWood.remove(immutablePos);
+                            dryingWood.remove(immutablePos);
+                        }
+
+                    } else {
+
+                        // Não existe água encostando na madeira.
+                        // Se ela estava molhada, começa a secar.
+                        if (wetWood.containsKey(immutablePos)) {
+
+                            // Começou a secar agora
+                            if (!dryingWood.containsKey(immutablePos)) {
+
+                                dryingWood.put(immutablePos, gameTime);
+
+                                System.out.println(
+                                        "☀️ Madeira começou a secar em: " + immutablePos
+                                );
+                            }
+
+                            long dryingTime =
+                                    gameTime - dryingWood.get(immutablePos);
+
+                            System.out.println(
+                                    "☀️ Secando madeira: " + immutablePos
+                                            + " | Tempo: " + dryingTime
+                                            + "/" + DRY_TIME
+                            );
+
+// Terminou de secar
+                            if (dryingTime >= DRY_TIME) {
+
+                                wetWood.remove(immutablePos);
+                                dryingWood.remove(immutablePos);
+
+                                // Avisa o Minecraft que o bloco precisa ser renderizado novamente
+                                level.sendBlockUpdated(
+                                        immutablePos,
+                                        level.getBlockState(immutablePos),
+                                        level.getBlockState(immutablePos),
+                                        Block.UPDATE_CLIENTS
+                                );
+
+                                System.out.println(
+                                        "🌳 Madeira secou completamente em: " + immutablePos
+                                );
+                            }
                         }
                     }
                 }
             }
         }
     }
+
 
     private static boolean isTouchingWater(Level level, BlockPos pos) {
 
@@ -102,7 +160,7 @@ public class WoodDamageManager {
 
         for (BlockPos neighbor : neighbors) {
 
-            if (level.getFluidState(neighbor).is(net.minecraft.tags.FluidTags.WATER)) {
+            if (level.getFluidState(neighbor).is(FluidTags.WATER)) {
                 return true;
             }
         }
@@ -110,8 +168,13 @@ public class WoodDamageManager {
         return false;
     }
 
+    public static boolean isWet(BlockPos pos) {
+        return wetWood.containsKey(pos);
+    }
+
     public static void reset() {
         wetWood.clear();
+        dryingWood.clear();
 
         System.out.println("🪵 Estado das madeiras resetado!");
     }
