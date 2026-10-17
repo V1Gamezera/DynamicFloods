@@ -1,7 +1,7 @@
 package com.v1gamezera.dynamicfloods.flood;
 
-import net.minecraft.core.BlockPos;
 import com.v1gamezera.dynamicfloods.config.DynamicFloodsConfig;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
 public class FloodManager {
@@ -9,6 +9,13 @@ public class FloodManager {
     private static int floodLevel = 0;
     private static BlockPos floodOrigin;
     private static long lastFloodTime = -1;
+
+    // Controle da frequência das buscas por água
+    private static long lastWaterSearchTime = -1;
+    private static final long WATER_SEARCH_INTERVAL = 100;
+
+    // Nível estimado na última busca
+    private static int targetFloodLevel = 0;
 
     public static int getFloodLevel() {
         return floodLevel;
@@ -32,9 +39,11 @@ public class FloodManager {
     }
 
     public static void setFloodOrigin(BlockPos pos) {
-        floodOrigin = pos;
+        floodOrigin = pos.immutable();
 
-        System.out.println("🌊 Origem da enchente definida em: " + pos);
+        System.out.println(
+                "🌊 Origem da enchente definida em: " + floodOrigin
+        );
     }
 
     public static BlockPos getFloodOrigin() {
@@ -42,11 +51,14 @@ public class FloodManager {
     }
 
     public static void increaseFlood(long gameTime) {
+
         floodLevel++;
 
-        System.out.println("🌊 Nível da enchente: " + floodLevel
-                + " | Estágio: " + getFloodStage()
-                + " (tick: " + gameTime + ")");
+        System.out.println(
+                "🌊 Nível da enchente: " + floodLevel
+                        + " | Estágio: " + getFloodStage()
+                        + " (tick: " + gameTime + ")"
+        );
     }
 
     public static void resetFlood() {
@@ -54,6 +66,8 @@ public class FloodManager {
         floodLevel = 0;
         floodOrigin = null;
         lastFloodTime = -1;
+        lastWaterSearchTime = -1;
+        targetFloodLevel = 0;
 
         WoodDamageManager.reset();
 
@@ -62,33 +76,99 @@ public class FloodManager {
 
     public static void tickFlood(Level level) {
 
-        System.out.println("🌧️ FloodManager rodando!");
-
         long gameTime = level.getGameTime();
 
         if (!level.players().isEmpty()) {
 
-            BlockPos playerPos = level.players().get(0).blockPosition();
+            // Procura água somente a cada 100 ticks
+            boolean shouldSearchWater =
+                    lastWaterSearchTime < 0
+                            || gameTime - lastWaterSearchTime
+                            >= WATER_SEARCH_INTERVAL;
 
-            BlockPos water = WaterSourceFinder.findWater(level, playerPos, 128);
+            if (shouldSearchWater) {
 
-            if (water != null) {
+                lastWaterSearchTime = gameTime;
 
-                System.out.println("🌊 Água encontrada em: " + water);
+                BlockPos playerPos =
+                        level.players().get(0).blockPosition();
 
-                int waterSize = WaterAnalyzer.countWaterBlocks(level, water);
+                BlockPos water =
+                        WaterSourceFinder.findWater(
+                                level,
+                                playerPos,
+                                128
+                        );
 
-                System.out.println("🌊 Tamanho do corpo d'água: " + waterSize + " blocos");
+                if (water != null) {
 
-                int calculatedLevel = FloodCalculator.calculateFloodLevel(waterSize);
+                    System.out.println(
+                            "🌊 Água encontrada em: " + water
+                    );
 
-                System.out.println("🌊 Força calculada da enchente: nível " + calculatedLevel);
+                    int waterSize =
+                            WaterAnalyzer.countWaterBlocks(
+                                    level,
+                                    water
+                            );
 
-                setFloodOrigin(water);
+                    System.out.println(
+                            "🌊 Tamanho do corpo d'água: "
+                                    + waterSize + " blocos"
+                    );
 
-            } else {
+                    int calculatedLevel =
+                            FloodCalculator.calculateFloodLevel(
+                                    waterSize
+                            );
 
-                System.out.println("❌ Nenhuma água encontrada");
+                    targetFloodLevel = Math.min(
+                            calculatedLevel,
+                            DynamicFloodsConfig.MAX_FLOOD_LEVEL.get()
+                    );
+
+                    System.out.println(
+                            "🌊 Força calculada da enchente: nível "
+                                    + targetFloodLevel
+                    );
+
+                    if (floodOrigin == null) {
+
+                        setFloodOrigin(water);
+                        lastFloodTime = gameTime;
+
+                        System.out.println(
+                                "⏱️ Temporizador de crescimento iniciado!"
+                        );
+
+                    } else if (lastFloodTime < 0) {
+
+                        lastFloodTime = gameTime;
+
+                        System.out.println(
+                                "⏱️ Temporizador de crescimento iniciado!"
+                        );
+                    }
+
+                } else {
+
+                    System.out.println(
+                            "❌ Nenhuma água encontrada"
+                    );
+
+                    targetFloodLevel = 0;
+                    lastFloodTime = -1;
+                }
+            }
+
+            // O temporizador é verificado sem procurar água novamente
+            if (targetFloodLevel > floodLevel
+                    && lastFloodTime >= 0
+                    && gameTime - lastFloodTime
+                    >= DynamicFloodsConfig.FLOOD_INTERVAL.get()) {
+
+                increaseFlood(gameTime);
+                lastFloodTime = gameTime;
             }
         }
 

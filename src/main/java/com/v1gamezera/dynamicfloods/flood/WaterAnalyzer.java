@@ -1,23 +1,30 @@
+
 package com.v1gamezera.dynamicfloods.flood;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
+import java.util.ArrayDeque;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 
 public class WaterAnalyzer {
 
+    // Não precisamos contar mais de 1000 blocos
+    // para calcular a força atual da enchente.
+    private static final int MAX_WATER_BLOCKS_TO_COUNT = 1000;
+
     public static int countWaterBlocks(Level level, BlockPos start) {
 
         Set<BlockPos> visited = new HashSet<>();
-        Queue<BlockPos> queue = new LinkedList<>();
+        Queue<BlockPos> queue = new ArrayDeque<>();
 
-        queue.add(start);
-        visited.add(start);
+        BlockPos startPos = start.immutable();
+
+        queue.add(startPos);
+        visited.add(startPos);
 
         int waterCount = 0;
 
@@ -31,10 +38,16 @@ public class WaterAnalyzer {
 
             waterCount++;
 
+            // Para a busca assim que atingir o limite.
+            if (waterCount >= MAX_WATER_BLOCKS_TO_COUNT) {
+                return waterCount;
+            }
+
             for (BlockPos neighbor : getNeighbors(current)) {
 
-                if (!visited.contains(neighbor)) {
-                    visited.add(neighbor);
+                if (visited.add(neighbor)
+                        && isWater(level, neighbor)) {
+
                     queue.add(neighbor);
                 }
             }
@@ -43,14 +56,11 @@ public class WaterAnalyzer {
         return waterCount;
     }
 
-
     private static boolean isWater(Level level, BlockPos pos) {
         return level.getBlockState(pos).is(Blocks.WATER);
     }
 
-
     private static BlockPos[] getNeighbors(BlockPos pos) {
-
         return new BlockPos[] {
                 pos.north(),
                 pos.south(),
