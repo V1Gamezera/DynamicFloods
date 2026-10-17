@@ -1,8 +1,8 @@
+
 package com.v1gamezera.dynamicfloods.event;
 
 import com.v1gamezera.dynamicfloods.flood.FloodManager;
 import com.v1gamezera.dynamicfloods.flood.FloodSimulator;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -12,36 +12,29 @@ import net.minecraftforge.fml.common.Mod;
 public class FloodEvents {
 
     @SubscribeEvent
-    public static void onWorldTick(TickEvent.LevelTickEvent event) {
+    public static void onWorldTick(
+            TickEvent.LevelTickEvent event
+    ) {
+        if (event.phase != TickEvent.Phase.END
+                || event.level.dimension() != Level.OVERWORLD
+                || event.level.isClientSide()
+                || !event.level.isRaining()) {
+            return;
+        }
 
-        if (event.phase == TickEvent.Phase.END
-                && event.level.dimension() == Level.OVERWORLD
-                && !event.level.isClientSide()
-                && event.level.isRaining()) {
+        Level level = event.level;
 
-            FloodManager.tickFlood(event.level);
+        // O FloodManager passa a ser responsável por encontrar
+        // e validar a origem da enchente.
+        FloodManager.tickFlood(level);
 
-            if (!event.level.players().isEmpty()) {
+        // Só executa a simulação após validar uma origem.
+        if (!level.players().isEmpty()
+                && FloodManager.getFloodOrigin() != null) {
 
-                var player = event.level.players().get(0);
+            var player = level.players().get(0);
 
-                if (FloodManager.getFloodOrigin() == null) {
-                    BlockPos waterSource = FloodSimulator.findNearestWater(
-                            event.level,
-                            player.blockPosition(),
-                            128
-                    );
-
-                    if (waterSource != null) {
-                        FloodManager.setFloodOrigin(waterSource);
-                    }
-                }
-
-                FloodSimulator.simulateFlood(
-                        event.level,
-                        player
-                );
-            }
+            FloodSimulator.simulateFlood(level, player);
         }
     }
 }
